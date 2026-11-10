@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>От курьера до магната</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script><!--TG-SDK-->
+<style>
+:root{--bg:#0c0b16;--panel:#17152a;--line:#2c2846;--ink:#f1edff;--dim:#9a94bd;--neon:#b26bff;--cyan:#4fe3ff;--gold:#ffd166;--ok:#5fe39a;--bad:#ff5c7a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:15px/1.38 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation;transition:transform .09s,filter .09s}
+button:active{transform:scale(.96);filter:brightness(1.2)}
+input{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;width:100%;outline:none}
+input:focus{border-color:var(--neon)}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+#top{display:flex;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) 14px 8px;font-weight:800}
+#top .sp{flex:1}.pill{background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:4px 11px;font-variant-numeric:tabular-nums;font-size:14px}
+.pill.a{color:var(--gold)}.pill.e{color:var(--cyan)}
+#page{flex:1;min-height:0;overflow-y:auto;padding:4px 14px 18px;-webkit-overflow-scrolling:touch}
+#nav{display:flex;gap:3px;border-top:1px solid var(--line);padding:7px 8px max(8px,env(safe-area-inset-bottom));background:var(--bg)}
+#nav button{flex:1;min-height:52px;font-size:11.5px;color:var(--dim);border-radius:11px}#nav button i{display:block;font-style:normal;font-size:21px;line-height:1.2}
+#nav button.on{color:var(--ink);background:var(--panel)}
+h1{font:900 34px/1 Impact,"Arial Narrow",system-ui,sans-serif;letter-spacing:.5px;margin:6px 0 6px;text-transform:uppercase}
+h1 em{font-style:normal;color:var(--neon)}
+h2{font-size:20px;margin:16px 0 8px}.sub{color:var(--dim);margin:0 0 12px;font-size:14px}
+.big{display:block;width:100%;min-height:56px;border-radius:15px;background:linear-gradient(90deg,var(--neon),#7b5cff);color:#fff;font-weight:900;font-size:18px;letter-spacing:.4px;box-shadow:0 6px 22px #8a4dff55}
+.ghost{display:block;width:100%;min-height:48px;border-radius:13px;background:var(--panel);border:1px solid var(--line);font-weight:700;margin-top:9px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:10px}.row .t{flex:1;min-width:0}.row b{display:block}.row small{color:var(--dim)}
+.buy{min-width:92px;min-height:42px;padding:0 10px;border-radius:11px;background:var(--gold);color:#1a1404;font-weight:800;font-variant-numeric:tabular-nums}
+.buy.alt{background:none;border:1px solid var(--neon);color:var(--ink)}.lock{opacity:.45}
+.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{min-height:40px;padding:0 13px;border-radius:11px;background:var(--panel);border:1px solid var(--line);font-weight:700}
+.chip.on{border:2px solid var(--neon);background:#2a1d4a}.dot{width:40px;height:40px;border-radius:50%;padding:0;border:3px solid transparent}.dot.on{border-color:#fff}
+.lbl{font-weight:800;margin:14px 0 7px;font-size:14px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+canvas.hero{display:block;width:100%;height:300px;border-radius:18px;background:radial-gradient(circle at 50% 30%,#3b2a6b,#14122a 75%)}
+.badge{display:inline-block;padding:6px 14px;border-radius:99px;font:900 18px Impact,system-ui,sans-serif;letter-spacing:.8px;background:#0c0b16;border:2px solid var(--neon);text-transform:uppercase}
+.bar{height:9px;background:#0c0b16;border-radius:5px;overflow:hidden;flex:1}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--neon),var(--cyan));border-radius:5px;transition:width .5s}
+.stat{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:14px}.stat span{width:96px;color:var(--dim)}.stat b{width:30px;text-align:right;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.act{min-height:78px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px}.act b{display:block}.act small{color:var(--dim);font-size:12.5px}.act em{font-style:normal;color:var(--gold);font-size:12px;font-weight:800}
+.event{background:linear-gradient(160deg,#2a1d4a,#17152a);border:1px solid var(--neon)}.event p{font-size:17px;margin:0 0 10px}
+.opt{display:block;width:100%;text-align:left;min-height:50px;background:#0c0b16cc;border:1px solid var(--line);border-left:3px solid var(--neon);border-radius:12px;padding:10px 13px;margin-top:8px;font-weight:700}
+.daybar{display:flex;gap:5px;margin:4px 0 12px}.daybar i{flex:1;height:6px;border-radius:3px;background:var(--line)}.daybar i.on{background:var(--cyan)}
+.swipe{position:relative;height:430px;border-radius:20px;overflow:hidden;background:#14122a;border:1px solid var(--line);transition:transform .32s,opacity .32s}
+.swipe canvas{width:100%;height:100%;display:block}.swipe .info{position:absolute;left:0;right:0;bottom:0;padding:60px 16px 14px;background:linear-gradient(transparent,#0c0b16f2 45%)}
+.swipe .info b{font-size:24px}.swipe .rate{position:absolute;top:12px;right:12px}
+.swipe.out-l{transform:translateX(-120%) rotate(-14deg);opacity:0}.swipe.out-r{transform:translateX(120%) rotate(14deg);opacity:0}
+.sw{display:flex;gap:18px;justify-content:center;margin:14px 0}.sw button{width:72px;height:72px;border-radius:50%;font-size:30px;background:var(--panel);border:2px solid var(--line)}.sw .yes{border-color:var(--bad)}
+.mrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:9px 4px;border-bottom:1px solid var(--line)}.mrow canvas{width:50px;height:50px;border-radius:50%;background:#2a1d4a}.mrow .t{flex:1}.mrow small{color:var(--dim)}
+.msgs{display:flex;flex-direction:column;gap:7px;max-height:44vh;overflow-y:auto;padding:4px 0 8px}.msg{max-width:82%;padding:9px 12px;border-radius:15px;font-size:15px}.msg.them{background:var(--panel);align-self:flex-start;border-bottom-left-radius:4px}.msg.me{background:#5b3ab8;align-self:flex-end;border-bottom-right-radius:4px}
+.gift{position:relative;border-radius:16px;padding:10px 6px 9px;text-align:center;border:1px solid var(--line);overflow:hidden;min-height:128px}
+.gift .e{font-size:42px;line-height:1.25;position:relative}.gift b{display:block;font-size:12.5px;position:relative}.gift small{display:block;color:#ffffffb0;font-size:11.5px;position:relative}
+.gift .pt{position:absolute;inset:0;opacity:.28;font-size:13px;line-height:22px;letter-spacing:9px;word-break:break-all;padding:4px;overflow:hidden}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tabs{display:flex;gap:6px;margin:4px 0 12px}.tabs button{flex:1;min-height:40px;border-radius:11px;background:var(--panel);border:1px solid var(--line);font-weight:800;font-size:14px}.tabs button.on{border-color:var(--neon);background:#2a1d4a}
+.lb{display:flex;padding:10px 4px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}.lb.me{color:var(--gold);font-weight:800}.lb span:first-child{width:34px;color:var(--dim)}.lb span:nth-child(2){flex:1}
+.modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:#05040bd0;z-index:10}.modal.on{display:flex}
+.box{width:100%;max-width:520px;max-height:92%;overflow-y:auto;background:var(--bg);border:1px solid var(--line);border-radius:22px 22px 0 0;padding:18px 16px max(18px,env(safe-area-inset-bottom));animation:up .25s}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.box h2{margin-top:0;font-size:22px}.ch{display:inline-block;margin:3px;padding:5px 11px;border-radius:10px;background:var(--panel);font-weight:800;font-size:14px}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#17152af2;border:1px solid var(--neon);padding:9px 15px;border-radius:12px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:88%;text-align:center;font-weight:700}#toast.on{opacity:1}
+.tapfx{position:fixed;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid #c9a6ffcc;pointer-events:none;z-index:50;animation:tapfx .38s ease-out forwards}@keyframes tapfx{to{transform:scale(5);opacity:0}}
+.shake{animation:shake .32s}@keyframes shake{20%{transform:translateX(-6px)}45%{transform:translateX(6px)}70%{transform:translateX(-3px)}}
+.pop{animation:pop .5s}@keyframes pop{40%{transform:scale(1.08)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top"><b id="who">Курьер</b><span class="sp"></span><span class="pill e" id="en">⚡ 6</span><span class="pill a" id="au">💵 0</span></div>
+  <div id="page"></div>
+  <nav id="nav"></nav>
+</div>
+<div class="modal" id="modal"><div class="box" id="box"></div></div>
+<div id="toast"></div>
+<script>
+"use strict";
+const tg = window.Telegram && window.Telegram.WebApp, initData = (tg && tg.initData) || "", DEMO = !initData;
+if (tg) { tg.ready(); tg.expand(); try { tg.disableVerticalSwipes(); tg.setHeaderColor("#0c0b16"); tg.setBackgroundColor("#0c0b16"); } catch (e) {} }
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = n => Number(n).toLocaleString("ru-RU");
+function haptic(k) { try { tg && tg.HapticFeedback.impactOccurred(k); } catch (e) {} }
+let audio = null;
+function beep(f, len, vol, type) { try { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime; o.type = type || "triangle"; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(Math.max(60, f * .6), t + len); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(g).connect(audio.destination); o.start(t); o.stop(t + len); } catch (e) {} }
+let tt; function toast(s) { const t = $("toast"); t.textContent = s; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 2300); }
+addEventListener("pointerdown", e => { const fx = document.createElement("div"); fx.className = "tapfx"; fx.style.left = e.clientX + "px"; fx.style.top = e.clientY + "px"; document.body.appendChild(fx); setTimeout(() => fx.remove(), 400); if (e.target.closest("button")) { beep(520, .05, .04); haptic("light"); } }, true);
+addEventListener("click", e => { const b = e.target.closest(".lock"); if (!b) return; e.preventDefault(); e.stopPropagation(); b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); haptic("heavy"); toast(b.dataset.why || "Пока недоступно"); }, true);
+
+async function api(path, body) {
+  if (DEMO) { await new Promise(r => setTimeout(r, 60)); return DEMO_API(path, body || {}); }
+  const r = await fetch("/api/" + path, { method: "POST", headers: { "Content-Type": "application/json", "X-Init-Data": initData }, body: JSON.stringify(body || {}) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || "Нет связи с сервером");
+  return d;
+}
+async function call(path, body, btn) {
+  if (btn) btn.disabled = true;
+  try { const r = await api(path, body); if (r.me) setMe(r.me); return r; }
+  catch (err) { toast(err.message); if (btn) { btn.classList.remove("shake"); void btn.offsetWidth; btn.classList.add("shake"); } return null; }
+  finally { if (btn) btn.disabled = false; }
+}
+
+/* ---------- Рисованные персонажи ---------- */
+const LOOKS = {
+  vera:  { skin: "#eec3a0", hair: "#a8522a", style: "pony", top: "#c9342f", accent: "#f2e36b", pants: "#26324f", shoes: "#20222c", wear: "medic", b: 1 },
+  gleb:  { skin: "#d9ab86", hair: "#3a2a22", style: "short", top: "#35508e", accent: "#ffd24a", pants: "#222c4a", shoes: "#14161e", wear: "police", hat: "police", stubble: 1, b: 1.16 },
+  tim:   { skin: "#f0c8a4", hair: "#2a2028", style: "messy", top: "#ee8a2e", accent: "#fff0dc", pants: "#3f5f8c", shoes: "#e9e4d8", wear: "hoodie", pack: 1, b: .96 },
+  sonya: { skin: "#f4cfb0", hair: "#7a4a24", style: "pigtails", top: "#f4c531", accent: "#d99a13", pants: "#4b6fa8", shoes: "#d9405a", wear: "rain", b: .9, h: .68 },
+  lida:  { skin: "#f0caa8", hair: "#e3bf63", style: "bob", top: "#c9342f", accent: "#f2e36b", pants: "#26324f", shoes: "#20222c", wear: "medic", b: .96 },
+  rudin: { skin: "#d6b08e", hair: "#9ea2a8", style: "short", top: "#4b5546", accent: "#c93d3d", pants: "#39402f", shoes: "#14130f", wear: "officer", hat: "officer", scar: 1, b: 1.1 },
+  lanskoy:{ skin: "#ecccae", hair: "#c9c9c9", style: "bald", top: "#eef1f4", accent: "#6b8fb0", pants: "#3a3f4a", shoes: "#20222c", wear: "lab", glasses: 1, b: .95 },
+  kira:  { skin: "#e5b892", hair: "#8f4ad0", style: "bob", top: "#2a2c3a", accent: "#62e0ff", pants: "#222430", shoes: "#d9405a", wear: "hoodie", phones: 1, b: .94 },
+  marfa: { skin: "#d9a982", hair: "#6a6a6a", style: "short", top: "#7c4a3a", accent: "#d9b25a", pants: "#4a342a", shoes: "#20180f", wear: "plain", hat: "scarf", b: 1.08 },
+  man:   { skin: "#dfb491", hair: "#50392a", style: "short", top: "#5c6f60", accent: "#3d4a40", pants: "#39384a", shoes: "#20222c", wear: "plain", b: 1.04 },
+  woman: { skin: "#eec4a4", hair: "#3b2a22", style: "bob", top: "#8a5a9c", accent: "#5f3b70", pants: "#33344a", shoes: "#20222c", wear: "plain", b: .92 },
+  kid:   { skin: "#f4cfb0", hair: "#3a2a22", style: "messy", top: "#4aa0a0", accent: "#2f7272", pants: "#39384a", shoes: "#d0d0d0", wear: "plain", b: .86, h: .66 },
+  soldier:{ skin: "#d9ab86", hair: "#333", style: "short", top: "#5f6b45", accent: "#3e4730", pants: "#4e5839", shoes: "#14130f", wear: "soldier", hat: "helmet", b: 1.12 },
+  zombie:{ skin: "#9db38d", hair: "#30342a", style: "messy", top: "#5a5560", accent: "#3a3640", pants: "#3a3a44", shoes: "#23232b", wear: "torn", zombie: 1, b: 1 },
+};
+const POSES = {
+  stand: {}, walk: {}, run: { lean: .22 },
+  talk: { a1: .35, a2: -.75, b1: -.1 },
+  aim: { a1: 1.5, a2: -.08, b1: 1.15, b2: -.5, lean: .05, l1: .12, r1: -.2 },
+  armsup: { a1: 2.5, a2: -.5, b1: 2.3, b2: -.5, lean: -.1 },
+  reach: { a1: 1.45, a2: -.1, b1: .9, b2: -.3, lean: .16, l1: .3, r1: -.25, r2: -.2 },
+  push: { a1: 1.5, b1: 1.35, lean: .28, l1: .4, r1: -.45, r2: -.2 },
+  kneel: { lean: .15, drop: 42, l1: 1.5, l2: -1.5, r1: .1, r2: -1.65, a1: .55, a2: -.8, b1: .3, head: .2 },
+  crouch: { lean: .34, drop: 34, l1: 1.15, l2: -1.45, r1: .7, r2: -1.5, a1: .8, a2: -1, b1: .5, b2: -.9, head: -.2 },
+  lie: { rot: 1.57, a1: .25, b1: -.2 },
+  hug: { a1: 1.15, a2: -.55, b1: 1.2, b2: -.55, lean: .12 },
+  give: { a1: 1.25, a2: -.25, b1: .05, lean: .08 },
+  lever: { a1: 1.55, a2: -.12, b1: 1.5, b2: -.15, lean: -.22, l1: .42, r1: -.32 },
+  type: { a1: .75, a2: -.85, b1: .7, b2: -.85, lean: .12, head: .12 },
+  sit: { drop: 44, l1: 1.5, l2: -1.5, r1: 1.42, r2: -1.42, a1: .55, a2: -.55, b1: .5, b2: -.55, lean: .06 },
+  point: { a1: 1.6, a2: 0, b1: .1, l1: .15, r1: -.1 },
+  bite: { a1: 1.3, a2: -.6, b1: 1.2, b2: -.6, lean: .42, head: .3, l1: .3, r1: -.3 },
+  hurt: { a1: .9, a2: -1.5, b1: .15, lean: -.24, head: -.3, l1: -.15, r1: .22 },
+  hold: { a1: .55, a2: -1.1, b1: .5, b2: -1.05, lean: .05, head: .18 },
+  grief: { lean: .5, drop: 42, l1: 1.5, l2: -1.5, r1: .1, r2: -1.65, a1: 1, a2: -1.5, b1: .9, b2: -1.5, head: .5 },
+  mic: { a1: .95, a2: -1.5, b1: .1, head: .05 },
+  nod: { a1: .2, a2: -.2, b1: .1, head: .22 },
+  palms: { a1: 1.25, a2: -.9, b1: 1.15, b2: -.9, lean: -.1, head: -.08 },
+  shake: { a1: 1.45, a2: -.12, b1: .05, lean: .08 },
+  write: { a1: .85, a2: -.75, b1: .75, b2: -.7, lean: .24, head: .28 },
+  carry: { a1: .9, a2: -.9, b1: .95, b2: -.9, lean: .16 },
+  throw: { a1: 2.7, a2: -.15, b1: .6, b2: -.3, lean: -.16, l1: .3, r1: -.28 },
+  raise: { a1: 2.9, a2: -.1, b1: .1 },
+};
+const POSE_KEYS = ["a1", "a2", "b1", "b2", "l1", "l2", "r1", "r2", "lean", "drop", "rot", "head"];
+function mixPose(p, q, k) { const o = {}; for (const key of POSE_KEYS) o[key] = (p[key] || 0) + ((q[key] || 0) - (p[key] || 0)) * k; return o; }
+function polar(x, y, a, len) { return [x + Math.sin(a) * len, y + Math.cos(a) * len]; }
+const INK = "#141019";
+function limb(pts, w, col) {
+  ctx.lineCap = ctx.lineJoin = "round";
+  const path = () => { ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); };
+  ctx.strokeStyle = INK; ctx.lineWidth = w + 5; path(); ctx.stroke();
+  ctx.strokeStyle = col; ctx.lineWidth = w; path(); ctx.stroke();
+}
+function shape(col, draw, outline) { ctx.beginPath(); draw(); ctx.fillStyle = col; ctx.fill(); if (outline !== 0) { ctx.strokeStyle = INK; ctx.lineWidth = 3; ctx.lineJoin = "round"; ctx.stroke(); } }
+function drawFace(k, o) {
+  const talk = o.talk ? Math.abs(Math.sin(sceneT * 11 + o.seed)) : 0, blink = (sceneT + o.seed) % 3.4 < .12;
+  shape(k.skin, () => { ctx.moveTo(-15, -13); ctx.bezierCurveTo(-19, 8, -13, 24, 3, 25); ctx.bezierCurveTo(17, 24, 21, 8, 19, -12); ctx.bezierCurveTo(16, -28, -11, -30, -15, -13); });
+  shape(k.skin, () => ctx.ellipse(-14, 2, 4.5, 6.5, 0, 0, 6.3));
+  ctx.fillStyle = "#00000022"; ctx.beginPath(); ctx.moveTo(-15, -6); ctx.bezierCurveTo(-18, 8, -12, 22, 0, 24); ctx.bezierCurveTo(-4, 12, -6, 2, -6, -8); ctx.fill();
+  if (k.zombie) {
+    ctx.fillStyle = "#f5f5e6"; ctx.beginPath(); ctx.ellipse(11, -2, 5, 4.8, 0, 0, 6.3); ctx.ellipse(1, -2, 4.5, 4.4, 0, 0, 6.3); ctx.fill();
+    ctx.fillStyle = "#8f1d24"; ctx.beginPath(); ctx.arc(11.5, -1, 1.5, 0, 6.3); ctx.arc(1.5, -1, 1.3, 0, 6.3); ctx.fill();
+    ctx.fillStyle = "#27121a"; ctx.beginPath(); ctx.ellipse(6, 14, 7.5, 5 + talk * 2, 0, 0, 6.3); ctx.fill();
+    ctx.fillStyle = "#e7e3c8"; for (let i = 0; i < 4; i++) ctx.fillRect(1 + i * 3.1, 10, 2, 3.3);
+    ctx.fillStyle = "#6c7f60"; ctx.fillRect(-6, 3, 6, 2); return;
+  }
+  if (blink) { ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(7, -2); ctx.lineTo(15, -2); ctx.moveTo(-3, -2); ctx.lineTo(4, -2); ctx.stroke(); }
+  else {
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(11, -1.5, 4.2, 3.5, 0, 0, 6.3); ctx.ellipse(.8, -1.5, 3.5, 3.3, 0, 0, 6.3); ctx.fill();
+    ctx.fillStyle = k.eyes || "#3a2618"; ctx.beginPath(); ctx.arc(12, -1.3, 3, 0, 6.3); ctx.arc(1.8, -1.3, 2.7, 0, 6.3); ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1.7; ctx.beginPath(); ctx.moveTo(6.6, -4.4); ctx.quadraticCurveTo(11, -6.4, 15.5, -4); ctx.moveTo(-2.8, -4.2); ctx.quadraticCurveTo(.8, -6, 4.5, -4.2); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(13, -2.4, .9, 0, 6.3); ctx.arc(2.7, -2.3, .8, 0, 6.3); ctx.fill();
+  }
+  const angry = k.scar || o.tense ? 2.5 : 0;
+  ctx.strokeStyle = k.hair === "#c9c9c9" ? "#8a8a8a" : k.style === "bald" ? "#555" : k.hair; ctx.lineWidth = 2.8; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(6, -10 + angry); ctx.lineTo(16, -11); ctx.moveTo(-5, -11); ctx.lineTo(3, -10 + angry); ctx.stroke();
+  ctx.strokeStyle = "#a3714f"; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(8, 2); ctx.quadraticCurveTo(12, 8, 7, 9); ctx.stroke();
+  if (talk > .12) { ctx.fillStyle = "#6b2230"; ctx.beginPath(); ctx.ellipse(8, 16, 4.5, 1 + talk * 3.6, 0, 0, 6.3); ctx.fill(); }
+  else { ctx.strokeStyle = "#7a3d32"; ctx.lineWidth = 2.1; ctx.beginPath(); ctx.moveTo(3, 16); ctx.quadraticCurveTo(8, o.sad ? 14 : 18, 13, 16); ctx.stroke(); }
+  if (k.stubble) { ctx.fillStyle = "#3a2a2233"; ctx.beginPath(); ctx.ellipse(6, 18, 12, 7, 0, 0, 6.3); ctx.fill(); }
+  if (k.scar) { ctx.strokeStyle = "#a04a44"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(14, -10); ctx.lineTo(9, 9); ctx.stroke(); }
+  if (k.glasses) { ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(11, -2, 6.4, 0, 6.3); ctx.moveTo(5, -2); ctx.lineTo(-.5 + 6, -2); ctx.moveTo(-5, -2); ctx.arc(.5, -2, 5.4, 3.14, 9.4); ctx.moveTo(-5, -2); ctx.lineTo(-13, -4); ctx.stroke(); }
+}
+function drawHairBack(k) {
+  const c = k.hair;
+  if (k.style === "pony") shape(c, () => { ctx.moveTo(-14, -14); ctx.bezierCurveTo(-42, -16, -44, 24, -30, 42); ctx.bezierCurveTo(-26, 26, -20, 14, -12, 8); });
+  if (k.style === "pigtails") { shape(c, () => ctx.ellipse(-22, 12, 9, 17, .25, 0, 6.3)); shape(c, () => ctx.ellipse(24, 14, 8, 15, -.2, 0, 6.3)); }
+  if (k.style === "long") shape(c, () => { ctx.moveTo(-19, -12); ctx.bezierCurveTo(-36, 24, -30, 50, -14, 58); ctx.lineTo(20, 56); ctx.bezierCurveTo(32, 36, 28, 8, 20, -12); });
+  if (k.style === "bob") shape(c, () => { ctx.moveTo(-20, -6); ctx.bezierCurveTo(-30, 18, -24, 26, -10, 27); ctx.lineTo(10, 26); ctx.lineTo(4, -12); });
+}
+function drawHairFront(k) {
+  const c = k.hair;
+  if (k.style === "bald") { shape(c, () => { ctx.moveTo(-17, -4); ctx.bezierCurveTo(-21, -12, -18, -18, -12, -18); ctx.lineTo(-8, -8); }); return; }
+  if (k.style === "short") shape(c, () => { ctx.moveTo(-17, 0); ctx.bezierCurveTo(-23, -30, 8, -40, 19, -18); ctx.bezierCurveTo(10, -22, 2, -22, -6, -16); ctx.bezierCurveTo(-9, -10, -11, -5, -17, 0); });
+  if (k.style === "messy") shape(c, () => { ctx.moveTo(-18, 2); ctx.lineTo(-22, -14); ctx.lineTo(-15, -13); ctx.lineTo(-17, -29); ctx.lineTo(-6, -22); ctx.lineTo(-2, -36); ctx.lineTo(6, -24); ctx.lineTo(16, -32); ctx.lineTo(16, -20); ctx.lineTo(24, -18); ctx.lineTo(14, -13); ctx.lineTo(4, -17); ctx.lineTo(-7, -11); ctx.closePath(); });
+  if (k.style === "pony" || k.style === "pigtails" || k.style === "bob" || k.style === "long") shape(c, () => { ctx.moveTo(-17, 4); ctx.bezierCurveTo(-23, -30, 12, -38, 20, -14); ctx.bezierCurveTo(10, -24, 0, -24, -4, -14); ctx.bezierCurveTo(-8, -6, -12, -2, -17, 4); });
+  if (k.hat === "police") { shape("#25345f", () => { ctx.moveTo(-20, -15); ctx.bezierCurveTo(-24, -36, 14, -42, 24, -24); ctx.lineTo(20, -14); ctx.closePath(); }); shape("#14161e", () => { ctx.moveTo(4, -16); ctx.lineTo(29, -13); ctx.lineTo(24, -9); ctx.lineTo(2, -11); ctx.closePath(); }); ctx.fillStyle = "#ffd24a"; ctx.beginPath(); ctx.arc(7, -27, 4, 0, 6.3); ctx.fill(); }
+  if (k.hat === "officer") { shape("#3d4639", () => { ctx.moveTo(-22, -15); ctx.bezierCurveTo(-34, -42, 24, -46, 28, -26); ctx.lineTo(20, -14); ctx.closePath(); }); shape("#c93d3d", () => { ctx.moveTo(-20, -18); ctx.lineTo(21, -16); ctx.lineTo(20, -12); ctx.lineTo(-20, -13); ctx.closePath(); }, 0); shape("#14130f", () => { ctx.moveTo(6, -13); ctx.lineTo(30, -10); ctx.lineTo(25, -6); ctx.lineTo(4, -9); ctx.closePath(); }); ctx.fillStyle = "#ffd24a"; ctx.beginPath(); ctx.arc(8, -29, 3.4, 0, 6.3); ctx.fill(); }
+  if (k.hat === "helmet") { shape("#55603f", () => { ctx.moveTo(-24, -8); ctx.bezierCurveTo(-28, -40, 22, -44, 26, -8); ctx.closePath(); }); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-8, 4); ctx.lineTo(12, 26); ctx.stroke(); }
+  if (k.hat === "scarf") shape("#b24c58", () => { ctx.moveTo(-21, 12); ctx.bezierCurveTo(-28, -36, 22, -40, 23, -10); ctx.bezierCurveTo(14, -24, -4, -26, -7, -4); ctx.bezierCurveTo(-8, 12, -6, 20, -12, 28); ctx.closePath(); });
+  if (k.phones) { ctx.strokeStyle = INK; ctx.lineWidth = 7; ctx.lineCap = "round"; ctx.beginPath(); ctx.arc(-1, -8, 25, 3.5, 5.9); ctx.stroke(); ctx.strokeStyle = k.accent; ctx.lineWidth = 3; ctx.stroke(); shape(k.accent, () => ctx.ellipse(-14, 2, 6.5, 9, 0, 0, 6.3)); }
+}
+function drawItem(item) {
+  if (item === "rifle") { shape("#242630", () => ctx.rect(-14, -4, 70, 8)); shape("#6b4a2f", () => ctx.rect(-32, -3, 22, 10)); shape("#242630", () => ctx.rect(12, 4, 8, 15)); }
+  if (item === "pistol") { shape("#242630", () => ctx.rect(-2, -4, 28, 8)); shape("#3a3540", () => ctx.rect(0, 2, 8, 13)); }
+  if (item === "syringe") { shape("#cfe9f6", () => ctx.rect(0, -3, 26, 6)); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(26, 0); ctx.lineTo(40, 0); ctx.stroke(); }
+  if (item === "paper") shape("#f2ead8", () => ctx.rect(-4, -20, 30, 38));
+  if (item === "phone") shape("#242630", () => ctx.rect(-4, -14, 13, 25));
+  if (item === "box") { shape("#b58a55", () => ctx.rect(4, -16, 36, 30)); ctx.fillStyle = "#f2e36b"; ctx.fillRect(18, -16, 8, 30); }
+  if (item === "can") { shape("#b8c2cf", () => ctx.roundRect(2, -13, 24, 26, 3)); ctx.fillStyle = "#c93d3d"; ctx.fillRect(2, -6, 24, 12); }
+  if (item === "plank") shape("#a97c4a", () => ctx.rect(-60, -5, 150, 10));
+  if (item === "badge") { shape("#ffd24a", () => { ctx.moveTo(4, -12); ctx.lineTo(26, -12); ctx.lineTo(26, 3); ctx.lineTo(15, 13); ctx.lineTo(4, 3); ctx.closePath(); }); }
+  if (item === "radio") { shape("#2c3324", () => ctx.rect(-3, -18, 17, 33)); ctx.fillStyle = "#62e0ff"; ctx.fillRect(0, -13, 11, 7); }
+  if (item === "bandage") shape("#f1eee4", () => ctx.ellipse(13, 0, 13, 11, 0, 0, 6.3));
+  if (item === "vial") { shape("#7bd9ff", () => ctx.roundRect(2, -5, 30, 10, 4)); ctx.fillStyle = "#3f4658"; ctx.fillRect(27, -6, 8, 12); }
+  if (item === "watch") { shape("#d9b25a", () => ctx.arc(12, 0, 11, 0, 6.3)); ctx.strokeStyle = INK; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(12, 0); ctx.lineTo(12, -7); ctx.moveTo(12, 0); ctx.lineTo(17, 2); ctx.stroke(); }
+  if (item === "torch") { shape("#a97c4a", () => ctx.rect(0, -3, 26, 7)); shape("#ff8a2e", () => { ctx.moveTo(26, -10); ctx.quadraticCurveTo(50 + Math.sin(sceneT * 18) * 5, 0, 26, 10); ctx.closePath(); }, 0); }
+  if (item === "mic") { shape("#30323e", () => ctx.rect(0, -3, 22, 6)); shape("#9aa2b5", () => ctx.arc(26, 0, 7, 0, 6.3)); }
+}
+/* Высота фигуры около 210 единиц, поворот задаётся dir. */
+function drawPerson(name, x, y, s, dir, p, o) {
+  const k = LOOKS[name] || LOOKS.man, H0 = k.h || 1, B = k.b, W0 = k.wear;
+  o = Object.assign({ step: 0, moving: 0, seed: x * .01 }, o);
+  ctx.save();
+  ctx.fillStyle = "#0008"; ctx.beginPath(); ctx.ellipse(x, y + 3, 42 * s * H0 * (p.rot > 1 ? 2 : 1), 9 * s, 0, 0, 6.3); ctx.fill();
+  const bob = o.moving ? Math.abs(Math.sin(o.step)) * 4 : Math.sin(sceneT * 1.9 + o.seed) * 1.3;
+  ctx.translate(x, y + (p.drop || 0) * s * H0); ctx.scale(dir * s * H0, s * H0);
+  if (p.rot) { ctx.translate(-20 * Math.min(1, p.rot / 1.57), -16 * Math.min(1, p.rot / 1.57)); ctx.rotate(p.rot); }
+  ctx.translate(0, -bob);
+  let a1 = p.a1, a2 = p.a2, b1 = p.b1, b2 = p.b2, l1 = p.l1, l2 = p.l2, r1 = p.r1, r2 = p.r2;
+  if (o.moving) { const amp = o.moving > 1 ? .95 : .55, sw = Math.sin(o.step) * amp, kn = -Math.max(0, Math.cos(o.step)) * amp * 1.2 - .1, kf = -Math.max(0, -Math.cos(o.step)) * amp * 1.2 - .1; l1 += sw; r1 -= sw; l2 += kn; r2 += kf; if (!o.keepArms) { a1 -= sw * .9; b1 += sw * .9; a2 -= o.moving > 1 ? 1.2 : .3; b2 -= o.moving > 1 ? 1.2 : .3; } }
+  const hip = [0, -96], lw = 15 * B, aw = 12 * B, knee = polar(hip[0], hip[1], l1, 46), foot = polar(knee[0], knee[1], l1 + l2, 46), kneeR = polar(4, hip[1], r1, 46), footR = polar(kneeR[0], kneeR[1], r1 + r2, 46);
+  ctx.save(); ctx.translate(0, hip[1]); ctx.rotate(p.lean); ctx.translate(0, -hip[1]);
+  const sh = [19 * B, -156], el2 = polar(sh[0], sh[1], b1 - .05, 37), hd2 = polar(el2[0], el2[1], b1 - .05 - b2, 35);
+  limb([sh, el2, hd2], aw, W0 === "torn" ? k.skin : k.top);
+  shape(k.skin, () => ctx.arc(hd2[0], hd2[1], 7.5 * B, 0, 6.3));
+  if (k.pack) shape("#36435e", () => ctx.roundRect(-34, -164, 24, 58, 8));
+  ctx.restore();
+  limb([[4, hip[1]], kneeR, footR], lw, k.pants);
+  shape(k.shoes, () => ctx.ellipse(footR[0] + 7, footR[1] + 1, 15, 7, Math.sin(r1 + r2) * -.8, 0, 6.3));
+  limb([hip, knee, foot], lw, k.pants);
+  shape(k.shoes, () => ctx.ellipse(foot[0] + 7, foot[1] + 1, 15, 7, Math.sin(l1 + l2) * -.8, 0, 6.3));
+  ctx.save(); ctx.translate(0, hip[1]); ctx.rotate(p.lean); ctx.translate(0, -hip[1]);
+  const lab = W0 === "lab";
+  shape(k.top, () => { ctx.moveTo(-23 * B, -162); ctx.quadraticCurveTo(0, -172, 25 * B, -162); ctx.lineTo(21 * B, lab ? -72 : -90); ctx.lineTo(-20 * B, lab ? -72 : -90); ctx.closePath(); });
+  if (W0 === "medic") { ctx.fillStyle = k.accent; ctx.fillRect(-21 * B, -124, 43 * B, 7); ctx.fillStyle = "#fff"; ctx.fillRect(6, -152, 14, 14); ctx.fillStyle = "#c9342f"; ctx.fillRect(11, -150, 4, 10); ctx.fillRect(8, -147, 10, 4); }
+  if (W0 === "police") { ctx.fillStyle = "#1d2a52"; ctx.fillRect(-2, -164, 5, 70); ctx.fillStyle = k.accent; ctx.beginPath(); ctx.moveTo(10, -148); ctx.lineTo(19, -148); ctx.lineTo(18, -138); ctx.lineTo(14.5, -134); ctx.lineTo(11, -138); ctx.fill(); ctx.fillStyle = "#14161e"; ctx.fillRect(-21 * B, -100, 43 * B, 8); }
+  if (W0 === "hoodie") { ctx.fillStyle = "#00000026"; ctx.beginPath(); ctx.moveTo(-13, -112); ctx.lineTo(16, -112); ctx.lineTo(20, -92); ctx.lineTo(-16, -92); ctx.fill(); ctx.strokeStyle = k.accent; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(3, -160); ctx.lineTo(3, -138); ctx.moveTo(11, -160); ctx.lineTo(11, -142); ctx.stroke(); shape(k.top, () => ctx.ellipse(-8, -166, 22, 10, -.1, 0, 6.3)); }
+  if (W0 === "rain") { ctx.fillStyle = k.accent; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.arc(9, -152 + i * 15, 2.7, 0, 6.3); ctx.fill(); } }
+  if (W0 === "officer") { ctx.fillStyle = "#c93d3d"; ctx.fillRect(13, -152, 12, 4); ctx.fillStyle = "#ffd24a"; ctx.fillRect(13, -146, 12, 3); ctx.fillStyle = "#23281d"; ctx.fillRect(-21 * B, -100, 43 * B, 8); ctx.strokeStyle = "#23281d"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(2, -164); ctx.lineTo(2, -100); ctx.stroke(); }
+  if (W0 === "soldier") { shape(k.accent, () => ctx.roundRect(-18 * B, -156, 37 * B, 54, 6)); ctx.fillStyle = "#2c3322"; ctx.fillRect(-10, -136, 9, 15); ctx.fillRect(4, -136, 9, 15); }
+  if (lab) { shape("#c8d7e4", () => { ctx.moveTo(-3, -166); ctx.lineTo(13, -166); ctx.lineTo(9, -100); ctx.lineTo(1, -100); ctx.closePath(); }, 0); ctx.strokeStyle = "#9eb3c6"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-3, -166); ctx.lineTo(-1, -72); ctx.moveTo(13, -166); ctx.lineTo(16, -72); ctx.stroke(); }
+  if (W0 === "torn") { ctx.fillStyle = "#0a090f"; for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(-19 + i * 9, -89); ctx.lineTo(-14 + i * 9, -104 + (i % 2) * 5); ctx.lineTo(-10 + i * 9, -89); ctx.fill(); } ctx.fillStyle = "#6b2230"; ctx.beginPath(); ctx.ellipse(6, -140, 7, 11, .4, 0, 6.3); ctx.fill(); }
+  shape(k.skin, () => ctx.rect(-5, -176, 14, 16), 0);
+  ctx.save(); ctx.translate(4, -197); ctx.rotate(p.head); drawHairBack(k); drawFace(k, o); drawHairFront(k); ctx.restore();
+  const sa = [-17 * B, -156], el = polar(sa[0], sa[1], a1 - .05, 37), hd = polar(el[0], el[1], a1 - .05 - a2, 35);
+  limb([sa, el, hd], aw, W0 === "torn" ? k.skin : k.top);
+  if (o.item) { ctx.save(); ctx.translate(hd[0], hd[1]); ctx.rotate(Math.PI / 2 - (a1 - a2)); drawItem(o.item); ctx.restore(); }
+  shape(k.skin, () => ctx.arc(hd[0], hd[1], 7.5 * B, 0, 6.3));
+  ctx.restore();
+  ctx.restore();
+}
+function drawNiceDog(x, y, s, dir, step, moving) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(dir * s, s);
+  const legs = moving ? Math.sin(step) * 12 : 0, wag = Math.sin(sceneT * 14) * 8;
+  ctx.fillStyle = "#0008"; ctx.beginPath(); ctx.ellipse(0, 3, 60, 8, 0, 0, 6.3); ctx.fill();
+  limb([[-38, -48], [-58, -70 + wag]], 8, "#eee7da");
+  limb([[-30, -32], [-34 - legs, -1]], 10, "#d2c9ba"); limb([[28, -32], [32 + legs, -1]], 10, "#d2c9ba");
+  shape("#eee7da", () => ctx.roundRect(-46, -62, 92, 38, 18));
+  shape("#20222c", () => ctx.ellipse(-16, -48, 18, 12, .2, 0, 6.3), 0);
+  limb([[-24, -30], [-22 + legs, -1]], 10, "#eee7da"); limb([[36, -30], [42 - legs, -1]], 10, "#eee7da");
+  shape("#eee7da", () => ctx.ellipse(52, -74, 24, 21, 0, 0, 6.3));
+  shape("#20222c", () => ctx.ellipse(40, -78, 12, 15, .2, 0, 6.3), 0);
+  shape("#20222c", () => ctx.ellipse(36, -90, 10, 18, .5 + Math.sin(sceneT * 3) * .06, 0, 6.3));
+  shape("#eee7da", () => ctx.ellipse(70, -66, 15, 11, 0, 0, 6.3));
+  ctx.fillStyle = "#1a1a22"; ctx.beginPath(); ctx.arc(82, -70, 5.5, 0, 6.3); ctx.arc(57, -80, 3.6, 0, 6.3); ctx.fill();
+  ctx.strokeStyle = "#d9405a"; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(33, -55); ctx.lineTo(62, -53); ctx.stroke();
+  ctx.restore();
+}
+
+
+
+let sceneT = 0;
+const OUTFIT = { hoodie: ["#2a2c3a", "hoodie"], jacket: ["#1a1a1f", "plain"], suit: ["#232c44", "officer"], coat: ["#6b5a48", "lab"] };
+const RIDES = { scooter: "🛴", ebike: "🚲", moped: "🛵", car: "🚗" };
+function lookOf(c, extra) {
+  extra = extra || {};
+  const w = OUTFIT[extra.wear] || [], body = extra.body || 10;
+  const courier = !extra.top && !w[0];
+  return { skin: c.skin, hair: c.hc || c.hair, style: c.hair || c.style, eyes: c.eyes, top: w[0] || extra.top || "#f2b632",
+    accent: "#ffffff55", pants: c.g === "f" ? "#3b3f66" : "#2f3448", shoes: "#e9e4d8", wear: w[1] || (courier ? "hoodie" : "plain"), pack: courier ? 1 : 0, glasses: false, b: .86 + Math.min(100, body) / 100 * .34, h: c.g === "f" ? .96 : 1 };
+}
+function drawHero(canvas, look, pose, opts) {
+  const dpr = Math.min(2, devicePixelRatio || 1), w = canvas.clientWidth || canvas.width, h = canvas.clientHeight || canvas.height;
+  if (canvas.width !== Math.round(w * dpr)) { canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); }
+  const main = ctx; ctx = canvas.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  opts = opts || {};
+  if (opts.glow) { const g = ctx.createRadialGradient(w / 2, h * .45, 10, w / 2, h * .45, h * .6); g.addColorStop(0, opts.glow); g.addColorStop(1, "transparent"); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); }
+  LOOKS.__me = look;
+  let s = opts.scale || h / 290, y = opts.y || h - 14;
+  if (opts.bust) { s = h / 95; y = h * .42 + 197 * s; }
+  drawPerson("__me", w / 2 + (opts.dx || 0), y, s, opts.dir || 1, mixPose(POSES[pose || "stand"], {}, 0), { seed: opts.seed || 1, talk: opts.talk, sad: opts.sad });
+  ctx = main;
+}
+let ctx = null;
+
+/* ---------- Состояние ---------- */
+let ME = null, CFG = null, tab = "life";
+function setMe(m) { ME = m; $("au").textContent = "💵 " + fmt(m.aura); $("en").textContent = "⚡ " + m.energy + "/" + m.energyMax; $("who").textContent = m.char ? m.char.name : "Курьер"; }
+const TABS = [["me", "😎", "Я"], ["life", "🌆", "Жизнь"], ["love", "💘", "Знакомства"], ["biz", "💼", "Бизнес"], ["gifts", "🎁", "Подарки"]];
+$("nav").innerHTML = TABS.map(t => `<button data-tab="${t[0]}"><i>${t[1]}</i>${t[2]}</button>`).join("");
+$("nav").onclick = e => { const b = e.target.closest("button"); if (b && ME.char) { tab = b.dataset.tab; render(); } };
+function openModal(html) { $("box").innerHTML = html; $("modal").classList.add("on"); }
+function closeModal() { $("modal").classList.remove("on"); }
+$("modal").onclick = e => { if (e.target.id === "modal") closeModal(); };
+const tierColor = r => r >= 76 ? "#ffd166" : r >= 62 ? "#4fe3ff" : r >= 48 ? "#b26bff" : r >= 34 ? "#5fe39a" : "#9a94bd";
+function changesHtml(list, aura) { let h = (list || []).map(c => `<span class="ch" style="color:${c[1] > 0 ? "var(--ok)" : "var(--bad)"}">${c[1] > 0 ? "▲ +" : "▼ "}${c[1]} ${esc(c[0])}</span>`).join(""); if (aura) h += `<span class="ch" style="color:var(--gold)">${aura > 0 ? "+" : ""}${fmt(aura)} 💵</span>`; return h; }
+function result(title, text, changes, aura, extra) {
+  openModal(`<h2>${esc(title)}</h2>${text ? `<p class="sub" style="font-size:16px;color:var(--ink)">${esc(text)}</p>` : ""}<div>${changesHtml(changes, aura)}</div>${extra || ""}<div style="height:14px"></div><button class="big" id="okBtn">ДАЛЬШЕ</button>`);
+  $("okBtn").onclick = () => { closeModal(); render(); };
+  haptic("medium"); beep(660, .18, .07);
+}
+
+/* ---------- Создание персонажа ---------- */
+const SKINS = ["#f4cfb0", "#eec3a0", "#d9ab86", "#b98560", "#8a5a3c"], HAIRC = ["#2a2028", "#7a4a24", "#e3bf63", "#a8522a", "#8f4ad0", "#111"];
+const EYES = ["#3a2618", "#3f6fb0", "#3f8a4a", "#6b6b6b"], HAIRS = { m: [["messy", "Лохматые"], ["short", "Короткие"], ["long", "Длинные"], ["bald", "Под ноль"]], f: [["long", "Длинные"], ["pony", "Хвост"], ["bob", "Каре"], ["pigtails", "Хвостики"]] };
+let NEW = null;
+function createScreen(edit) {
+  NEW = NEW || Object.assign({ g: "m", name: tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? (tg.initDataUnsafe.user.first_name || "").slice(0, 16) : "", skin: SKINS[1], hair: "messy", hc: HAIRC[0], eyes: EYES[0], want: "f" }, edit ? ME.char : {});
+  $("nav").style.display = "none";
+  const p = $("page"), dots = (k, list) => `<div class="chips">${list.map(c => `<button class="dot ${NEW[k] === c ? "on" : ""}" style="background:${c}" data-k="${k}" data-v="${c}"></button>`).join("")}</div>`;
+  const chips = (k, list) => `<div class="chips">${list.map(([v, l]) => `<button class="chip ${NEW[k] === v ? "on" : ""}" data-k="${k}" data-v="${v}">${l}</button>`).join("")}</div>`;
+  p.innerHTML = `<h1>${edit ? "Новый <em>образ</em>" : "Твой <em>персонаж</em>"}</h1><p class="sub">${edit ? "Прогресс сохранится." : "Старт: курьер с рюкзаком. Цель — стать магнатом."}</p>
+    <canvas class="hero" id="cv"></canvas>
+    <div class="lbl">Имя</div><input id="nm" maxlength="16" placeholder="Как тебя зовут?" value="${esc(NEW.name)}">
+    <div class="lbl">Пол</div>${chips("g", [["m", "Парень"], ["f", "Девушка"]])}
+    <div class="lbl">Кожа</div>${dots("skin", SKINS)}
+    <div class="lbl">Причёска</div>${chips("hair", HAIRS[NEW.g])}
+    <div class="lbl">Цвет волос</div>${dots("hc", HAIRC)}
+    <div class="lbl">Глаза</div>${dots("eyes", EYES)}
+    <div class="lbl">Кого ищешь</div>${chips("want", [["f", "Девушек"], ["m", "Парней"], ["any", "Всех"]])}
+    <div style="height:16px"></div><button class="big" id="go">${edit ? "СОХРАНИТЬ" : "НАЧАТЬ ПУТЬ"}</button>${edit ? '<button class="ghost" id="back">Отмена</button>' : ""}`;
+  $("nm").oninput = e => NEW.name = e.target.value;
+  p.onclick = e => { const b = e.target.closest("[data-k]"); if (!b) return; NEW[b.dataset.k] = b.dataset.v; if (b.dataset.k === "g") NEW.hair = HAIRS[NEW.g][0][0]; const top = p.scrollTop; createScreen(edit); p.scrollTop = top; };
+  $("go").onclick = async e => { if ((NEW.name || "").trim().length < 2) { $("nm").focus(); return toast("Введи имя, хотя бы 2 буквы"); } const r = await call("create", NEW, e.target); if (r) { NEW = null; $("nav").style.display = "flex"; tab = edit ? "me" : "life"; $("toast").classList.remove("on"); render(); if (!edit) result("Добро пожаловать", "Пока ты курьер без транспорта. Каждый день — 3 дела и одно событие. Работай, учись, копи на своё дело.", [], 0); } };
+  if (edit) $("back").onclick = () => { NEW = null; $("nav").style.display = "flex"; render(); };
+}
+
+/* ---------- Экраны ---------- */
+function render() {
+  if (!ME.char) return createScreen(false);
+  $("nav").style.display = "flex";
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  const p = $("page"); p.onclick = null; p.scrollTop = 0;
+  ({ me: meScreen, life: lifeScreen, love: loveScreen, biz: bizScreen, gifts: giftScreen })[tab](p);
+}
+function rideBonus() { const r = CFG.shop.find(x => x.id === ME.ride); return r ? r.pay : 0; }
+function heroLook() { return lookOf(ME.char, { wear: ME.wear, body: ME.st.stamina }); }
+
+function meScreen(p) {
+  const st = ME.st, names = { stamina: "Выносливость", charm: "Харизма", smart: "Хватка", rep: "Репутация", net: "Связи", health: "Здоровье" };
+  const next = CFG.tiers.find(t => t[0] > ME.rating);
+  p.innerHTML = `<canvas class="hero" id="cv"></canvas>
+    <div style="text-align:center;margin:-26px 0 6px;position:relative"><span class="badge" style="border-color:${tierColor(ME.rating)};color:${tierColor(ME.rating)}">${esc(ME.tier)} · ${ME.rating}</span></div>
+    <p class="sub" style="text-align:center">${next ? `До «${next[1]}»: ещё ${next[0] - ME.rating}` : "Ты на вершине"}${ME.ride ? ` · ${RIDES[ME.ride]} ${esc(CFG.shop.find(x => x.id === ME.ride).name)}` : " · пешком"}</p>
+    <div class="card">${Object.keys(names).map(k => `<div class="stat"><span>${names[k]}</span><div class="bar"><i style="width:${st[k] || 0}%;${k === "health" ? "background:linear-gradient(90deg,#ff5c7a,#ffd166)" : ""}"></i></div><b>${st[k] || 0}</b></div>`).join("")}</div>
+    <button class="big" id="photo">📸 СДЕЛАТЬ ФОТО НА АВАТАРКУ</button>
+    <div class="grid" style="margin-top:9px"><button class="ghost" id="wardrobe" style="margin:0">🛵 Транспорт и шмот</button><button class="ghost" id="look" style="margin:0">✂️ Сменить образ</button>
+    <button class="ghost" id="topBtn" style="margin:0">🏆 Топ</button><button class="ghost" id="shop" style="margin:0">⭐ Магазин</button></div>
+    <button class="ghost" id="friends">🤝 Позвать друга: +${CFG.refBonus} 💵 обоим</button>
+    <h2>Витрина подарков</h2><div class="g3" id="show"><p class="sub">Загружаю…</p></div>`;
+  drawHero($("cv"), heroLook(), "stand", { glow: tierColor(ME.rating) + "55" });
+  $("photo").onclick = takePhoto; $("wardrobe").onclick = wardrobe; $("look").onclick = () => createScreen(true); $("topBtn").onclick = topModal; $("shop").onclick = shopModal;
+  $("friends").onclick = () => { if (!CFG.invite || !tg) return toast(DEMO ? "В демо приглашения отключены" : "Ссылка пока не настроена"); tg.openTelegramLink("https://t.me/share/url?url=" + encodeURIComponent(CFG.invite) + "&text=" + encodeURIComponent("Го из курьеров в магнаты 💼")); };
+  $("show").onclick = e => { const b = e.target.closest("[data-g]"); if (b && SHOWN) openModal(`<div style="max-width:170px;margin:0 auto 10px">${giftTile(SHOWN.find(g => g.id == b.dataset.g))}</div>${attrs(SHOWN.find(g => g.id == b.dataset.g))}<button class="ghost" id="toGifts">Открыть мои подарки</button>`), $("toGifts").onclick = () => { closeModal(); tab = "gifts"; GT = "mine"; render(); }; };
+  api("profile", {}).then(r => { if (tab !== "me") return; SHOWN = r.gifts; $("show").innerHTML = r.gifts.length ? r.gifts.map(giftTile).join("") : `<p class="sub" style="grid-column:1/-1">Пока пусто. Купи NFT-подарок во вкладке «Подарки».</p>`; }).catch(() => {});
+}
+
+function lifeScreen(p) {
+  const acts = CFG.actions.map(a => { const lack = a.aura > ME.aura, none = ME.energy <= 0; return `<button class="act ${lack || none ? "lock" : ""}" data-a="${a.id}" data-why="${none ? "Нет энергии. +1 каждые 15 минут" : lack ? "Не хватает денег" : ""}"><b>${a.name}</b><small>${a.desc}</small>${a.aura > 0 ? `<em> · ${a.aura} 💵</em>` : a.id === "work" ? `<em> · +${CFG.pay[0] + rideBonus() + ME.rating * 4}…${CFG.pay[1] + rideBonus() + ME.rating * 4} 💵</em>` : ""}</button>`; }).join("");
+  const ev = ME.event;
+  p.innerHTML = `<div class="row" style="margin-top:4px"><div class="t"><h1 style="margin:0">День <em>${ME.day}</em></h1><small>Дел сегодня: ${ME.acts} из 3</small></div><span class="badge" style="font-size:14px;border-color:${tierColor(ME.rating)};color:${tierColor(ME.rating)}">${esc(ME.tier)}</span></div>
+    <div class="daybar">${[0, 1, 2].map(i => `<i class="${i < ME.acts ? "on" : ""}"></i>`).join("")}</div>
+    ${ev ? `<div class="card event"><small style="color:var(--cyan);font-weight:800">СОБЫТИЕ ДНЯ</small><p>${esc(ev.text)}</p>${ev.ch.map((c, i) => `<button class="opt ${c.aura > ME.aura ? "lock" : ""}" data-why="Не хватает денег" data-c="${i}">${esc(c.l)}${c.aura ? ` <span style="color:var(--gold)">· ${c.aura} 💵</span>` : ""}</button>`).join("")}</div>` : `<div class="card"><b>Событие дня пройдено</b><small style="color:var(--dim)">Новое будет, когда закончишь 3 дела.</small></div>`}
+    <h2>Чем займёшься?</h2><div class="grid">${acts}</div>
+    ${ME.energy < ME.energyMax ? `<p class="sub" style="text-align:center;margin-top:12px">+1 ⚡ через ${Math.ceil(ME.nextEnergy / 60)} мин</p>` : ""}
+    ${ME.energy <= 0 ? `<button class="big" id="refill">⚡ ВОСПОЛНИТЬ ЭНЕРГИЮ</button>` : ""}`;
+  p.onclick = async e => {
+    const a = e.target.closest("[data-a]"), c = e.target.closest("[data-c]");
+    if (a) { const r = await call("act", { id: a.dataset.a }, a); if (r) result(r.newDay ? "Новый день!" : CFG.actions.find(x => x.id === a.dataset.a).name, r.text + (r.newDay ? " Наступил день " + r.me.day + "." : ""), r.changes, r.aura); }
+    if (c) { const r = await call("choose", { i: +c.dataset.c }, c); if (r) result(r.ok === false ? "Не вышло" : "Готово", r.text, r.changes, r.aura); }
+  };
+  if ($("refill")) $("refill").onclick = refillModal;
+}
+
+let DECK = [];
+async function loveScreen(p) {
+  p.innerHTML = `<div class="tabs"><button class="on" id="t1">Анкеты</button><button id="t2">Чаты (${ME.matches.length})</button></div><div id="lv"></div>`;
+  $("t1").onclick = () => { $("t1").classList.add("on"); $("t2").classList.remove("on"); swipeView(); };
+  $("t2").onclick = () => { $("t2").classList.add("on"); $("t1").classList.remove("on"); chatsView(); };
+  try { DECK = (await api("deck")).cards; } catch (err) { DECK = []; }
+  swipeView();
+}
+function npcLook(c) { return lookOf({ g: c.g, skin: c.look.skin, hc: c.look.hair, hair: c.look.style, eyes: "#3a2618" }, { top: c.look.top, body: 40 }); }
+function swipeView() {
+  const box = $("lv"); if (!box) return;
+  const c = DECK[0];
+  if (!c || ME.swipesLeft <= 0) { box.innerHTML = `<div class="card" style="text-align:center;padding:30px 14px"><b style="font-size:18px">${ME.swipesLeft <= 0 ? "Свайпы закончились" : "Анкеты закончились"}</b><p class="sub">Новые появятся завтра. Пока прокачивай статус и харизму: так больше мэтчей.</p></div>`; return; }
+  box.innerHTML = `<div class="swipe" id="sc"><canvas id="scv"></canvas><span class="badge rate" style="font-size:14px;border-color:${tierColor(c.rate)};color:${tierColor(c.rate)}">${c.rate}</span><div class="info"><b>${esc(c.name)}, ${c.age}</b><div class="sub" style="margin:4px 0 0;color:#e0dcff">${esc(c.bio)}</div></div></div>
+    <div class="sw"><button id="no">✕</button><button class="yes" id="yes">❤️</button></div><p class="sub" style="text-align:center">Свайпов осталось: ${ME.swipesLeft}. Твой статус: ${ME.rating}</p>`;
+  drawHero($("scv"), npcLook(c), "talk", { glow: "#b26bff44", seed: c.age, scale: 1.25, y: 400 });
+  const go = async like => {
+    const card = $("sc"); card.classList.add(like ? "out-r" : "out-l");
+    const r = await call("swipe", { id: c.id, like }); DECK.shift();
+    setTimeout(() => { if (r && r.match) { beep(880, .3, .08); openModal(`<h2 style="text-align:center">Это мэтч! 💘</h2><p class="sub" style="text-align:center">${esc(c.name)} тоже лайкнул(а) тебя.</p><button class="big" id="chatNow">НАПИСАТЬ</button><button class="ghost" id="later">Позже</button>`); $("chatNow").onclick = () => openChat(c.id); $("later").onclick = () => { closeModal(); swipeView(); }; } else { if (like && r) toast("Пока без ответа"); swipeView(); } }, 300);
+  };
+  $("no").onclick = () => go(false); $("yes").onclick = () => go(true);
+}
+const STATUS = { chat: "Пишет тебе", date: "Ждёт свидания 💫", couple: "Вы вместе ❤️", friend: "Друзья", cold: "Разговор остыл" };
+function chatsView() {
+  const box = $("lv"); if (!box) return;
+  if (!ME.matches.length) { box.innerHTML = `<p class="sub">Пока нет мэтчей. Лайкай анкеты.</p>`; return; }
+  box.innerHTML = ME.matches.slice().reverse().map(m => `<button class="mrow" data-m="${m.id}"><canvas data-av="${m.id}"></canvas><span class="t"><b>${esc(m.name)}, ${m.age}</b><small>${STATUS[m.status]}</small></span>${m.opts.length || m.status === "date" ? '<span class="pill" style="color:var(--neon)">●</span>' : ""}</button>`).join("");
+  box.querySelectorAll("[data-av]").forEach(cv => { const m = ME.matches.find(x => x.id === cv.dataset.av); cv.width = cv.height = 100; drawHero(cv, npcLook(m), "stand", { bust: 1, seed: m.age }); });
+  box.onclick = e => { const b = e.target.closest("[data-m]"); if (b) openChat(b.dataset.m); };
+}
+function openChat(id) {
+  const m = ME.matches.find(x => x.id === id); if (!m) return closeModal();
+  let actions = "";
+  if (m.status === "chat") actions = m.opts.map((o, i) => `<button class="opt" data-r="${i}">${esc(o)}</button>`).join("");
+  if (m.status === "date") actions = `<div class="lbl">Куда позвать?</div>` + CFG.dates.map(d => `<button class="opt ${d.aura > ME.aura ? "lock" : ""}" data-why="Не хватает денег" data-d="${d.id}">${esc(d.name)} ${d.aura ? `<span style="color:var(--gold)">· ${fmt(d.aura)} 💵</span>` : "· бесплатно"}</button>`).join("");
+  openModal(`<div class="row"><canvas id="cav" style="width:52px;height:52px;border-radius:50%;background:#2a1d4a"></canvas><div class="t"><b>${esc(m.name)}, ${m.age}</b><small>${STATUS[m.status]}</small></div><button class="pill" id="cls">✕</button></div>
+    <div class="msgs" id="msgs">${m.log.map(l => `<div class="msg ${l[0]}">${esc(l[1])}</div>`).join("")}</div>${actions}`);
+  const cav = $("cav"); cav.width = cav.height = 104; drawHero(cav, npcLook(m), "stand", { bust: 1, seed: m.age });
+  const msgs = $("msgs"); msgs.scrollTop = msgs.scrollHeight;
+  $("cls").onclick = () => { closeModal(); if (tab === "love") { render(); setTimeout(() => $("t2") && $("t2").click(), 20); } };
+  $("box").onclick = async e => {
+    const r = e.target.closest("[data-r]"), d = e.target.closest("[data-d]");
+    if (r) { const res = await call("chat", { id, i: +r.dataset.r }, r); if (res) { haptic("light"); openChat(id); } }
+    if (d) { const res = await call("date", { id, place: d.dataset.d }, d); if (res) result(res.ok ? "Вы теперь пара ❤️" : "Френдзона", res.ok ? `${res.name} согласился(ась) встречаться!` : `${res.name} хочет остаться друзьями.`, res.changes, 0); }
+  };
+}
+
+function bizScreen(p) {
+  const ready = ME.biz.reduce((s, b) => s + (b.ready || 0), 0);
+  p.innerHTML = `<h1>Твой <em>бизнес</em></h1><p class="sub">Приносит деньги, пока тебя нет. Копится до 12 часов.${ME.vip ? " VIP: доход ×2." : ""}</p>
+    <button class="big ${ready ? "" : "lock"}" data-why="Пока нечего собирать" id="col">СОБРАТЬ ${fmt(ready)} 💵</button><div style="height:10px"></div>
+    ${ME.biz.map(b => `<div class="card row"><div class="t"><b>${esc(b.name)}${b.lvl ? ` · ур. ${b.lvl}` : ""}</b><small>${fmt(b.rate)} 💵 в час${b.lvl ? ` · накоплено ${fmt(b.ready)}` : ""}</small></div>
+      ${b.lvl ? (b.up ? `<button class="buy alt ${b.up > ME.aura ? "lock" : ""}" data-why="Не хватает денег" data-up="${b.id}">↑ ${fmt(b.up)}</button>` : `<span class="pill">Макс</span>`) : `<button class="buy ${b.cost > ME.aura ? "lock" : ""}" data-why="Нужно ${fmt(b.cost)} 💵" data-buy="${b.id}">${fmt(b.cost)}</button>`}</div>`).join("")}`;
+  p.onclick = async e => {
+    const c = e.target.closest("#col"), bu = e.target.closest("[data-buy]"), up = e.target.closest("[data-up]");
+    if (c) { const r = await call("biz/collect", {}, c); if (r) { result("Касса собрана", r.text, [], r.aura); } }
+    if (bu) { const r = await call("biz/buy", { id: bu.dataset.buy }, bu); if (r) result("Новый бизнес", r.text, [], 0); }
+    if (up) { const r = await call("biz/up", { id: up.dataset.up }, up); if (r) { toast(r.text); render(); } }
+  };
+}
+
+const BD = { "Ночь": "#1b1d33", "Закат": "#6b3350", "Океан": "#164a6b", "Лес": "#1f4a32", "Золото": "#6b5414", "Космос": "#2a1458" };
+const PT = { "Звёзды": "★", "Сердца": "♥", "Молнии": "⚡", "Короны": "♛", "Алмазы": "◆" };
+const MD = { "Хром": "grayscale(1) brightness(1.4)", "Неон": "saturate(2.4) hue-rotate(250deg)", "Пиксель": "contrast(1.6)", "Лава": "hue-rotate(-30deg) saturate(2)", "Голограмма": "hue-rotate(140deg) saturate(1.8)", "Алмаз": "brightness(1.5) saturate(.4) hue-rotate(160deg)" };
+function giftTile(g) {
+  const bg = g.backdrop ? `radial-gradient(circle at 50% 35%,${BD[g.backdrop]}ff,#0c0b16)` : "linear-gradient(#211d3a,#14122a)";
+  return `<button class="gift" data-g="${g.id}" style="background:${bg}">${g.pattern && PT[g.pattern] ? `<div class="pt">${PT[g.pattern].repeat(60)}</div>` : ""}<div class="e" style="filter:${MD[g.model] || "none"}">${g.emoji}</div><b>${esc(g.name)}</b><small>#${fmt(g.num)}${g.model ? " · " + esc(g.model) : ""}</small>${g.price ? `<small style="color:var(--gold)">${fmt(g.price)} 💵</small>` : ""}</button>`;
+}
+let GT = "store", GDATA = null, SHOWN = null;
+async function giftScreen(p) {
+  p.innerHTML = `<h1>NFT-<em>подарки</em></h1><p class="sub">Ограниченный тираж. Улучшай, чтобы получить случайную модель, фон и узор. Продавай на маркете.</p>
+    <div class="tabs"><button data-gt="store">Магазин</button><button data-gt="mine">Мои</button><button data-gt="market">Маркет</button></div><div id="gv"><p class="sub">Загружаю…</p></div>`;
+  p.querySelectorAll("[data-gt]").forEach(b => b.classList.toggle("on", b.dataset.gt === GT));
+  p.onclick = e => { const t = e.target.closest("[data-gt]"); if (t) { GT = t.dataset.gt; giftScreen(p); } };
+  try { GDATA = await api("gifts"); } catch (err) { return toast(err.message); }
+  const gv = $("gv"); if (!gv) return;
+  if (GT === "store") {
+    gv.innerHTML = `<div class="g3">${GDATA.store.map(s => `<div class="gift" style="background:linear-gradient(#211d3a,#14122a)"><div class="e">${s.emoji}</div><b>${esc(s.name)}</b><small>осталось ${fmt(s.left)} из ${fmt(s.supply)}</small><button class="buy ${s.left <= 0 || s.price > ME.aura ? "lock" : ""}" data-why="${s.left <= 0 ? "Распродано, ищи на маркете" : "Не хватает денег"}" data-mint="${s.id}" style="min-width:0;width:100%;margin-top:7px;min-height:34px;font-size:13px">${fmt(s.price)} 💵</button></div>`).join("")}</div>`;
+    gv.onclick = async e => { const b = e.target.closest("[data-mint]"); if (!b) return; const r = await call("gift/buy", { kind: b.dataset.mint }, b); if (r) { await refreshMe(); GT = "mine"; giftScreen($("page")); toast("Подарок #" + fmt(r.num) + " твой!"); } };
+  } else if (GT === "mine") {
+    gv.innerHTML = GDATA.mine.length ? `<div class="g3">${GDATA.mine.map(giftTile).join("")}</div>` : `<p class="sub">Пока пусто.</p>`;
+    gv.onclick = e => { const b = e.target.closest("[data-g]"); if (b) giftModal(GDATA.mine.find(g => g.id == b.dataset.g)); };
+  } else {
+    const m = await api("market");
+    gv.innerHTML = m.items.length ? `<div class="g3">${m.items.map(giftTile).join("")}</div>` : `<p class="sub">На маркете пока пусто. Выстави свой подарок первым.</p>`;
+    gv.onclick = e => { const b = e.target.closest("[data-g]"); if (!b) return; const it = m.items.find(g => g.id == b.dataset.g); giftModal(it, true); };
+  }
+}
+function attrs(g) { return g.model ? `<div class="card"><div class="row"><span class="t">Модель</span><b>${esc(g.model)} <small>${g.rare.model}%</small></b></div><div class="row"><span class="t">Фон</span><b>${esc(g.backdrop)} <small>${g.rare.backdrop}%</small></b></div><div class="row"><span class="t">Узор</span><b>${esc(g.pattern)} <small>${g.rare.pattern}%</small></b></div></div>` : `<p class="sub">Обычный подарок. Улучши, чтобы получить редкие свойства.</p>`; }
+function giftModal(g, buying) {
+  const upCost = Math.round(CFG.gifts.find(x => x.id === g.kind).price * GDATA.upgrade);
+  let actions;
+  if (buying) actions = g.mine ? `<button class="ghost" id="unlist">Снять с продажи</button>` : `<button class="big ${g.price > ME.aura ? "lock" : ""}" data-why="Не хватает денег" id="mbuy">КУПИТЬ ЗА ${fmt(g.price)} 💵</button><p class="sub" style="text-align:center;margin-top:6px">Продавец: ${esc(g.seller)}</p>`;
+  else actions = `${g.model ? "" : `<button class="big ${upCost > ME.aura ? "lock" : ""}" data-why="Не хватает денег" id="up">✨ УЛУЧШИТЬ ЗА ${fmt(upCost)} 💵</button>`}
+    ${g.price ? `<button class="ghost" id="unlist">Снять с продажи (${fmt(g.price)} 💵)</button>` : `<div class="row" style="margin-top:9px"><input id="pr" type="number" inputmode="numeric" placeholder="Цена" style="flex:1"><button class="buy" id="sell">Продать</button></div>`}
+    <button class="ghost" id="show">${g.shown ? "Скрыть из профиля" : "Показать в профиле"}</button>`;
+  openModal(`<div style="max-width:170px;margin:0 auto 10px">${giftTile(g)}</div><h2 style="text-align:center">${esc(g.name)} #${fmt(g.num)}</h2>${attrs(g)}${actions}`);
+  const reload = async () => { closeModal(); await refreshMe(); giftScreen($("page")); };
+  if ($("up")) $("up").onclick = async e => { const r = await call("gift/up", { id: g.id }, e.target); if (r) { beep(990, .4, .08); GDATA = r; giftModal(r.gift); toast("Готово! Смотри, что выпало"); refreshMe(); } };
+  if ($("sell")) $("sell").onclick = async e => { const v = +$("pr").value; if (!v) return toast("Введи цену"); if (await call("gift/sell", { id: g.id, price: v }, e.target)) { toast("Выставлено на маркет"); reload(); } };
+  if ($("unlist")) $("unlist").onclick = async e => { if (await call("gift/sell", { id: g.id, price: null }, e.target)) reload(); };
+  if ($("show")) $("show").onclick = async e => { if (await call("gift/show", { id: g.id }, e.target)) reload(); };
+  if ($("mbuy")) $("mbuy").onclick = async e => { const r = await call("market/buy", { id: g.id, price: g.price }, e.target); if (r) { GT = "mine"; reload(); toast("Подарок твой!"); } };
+}
+
+function wardrobe() {
+  openModal(`<h2>Транспорт и шмот</h2><p class="sub">Транспорт повышает оплату смены. Каждая покупка один раз добавляет харизму.</p>${CFG.shop.map(s => { const own = ME.clothes.includes(s.id), on = ME.wear === s.id || ME.ride === s.id; return `<div class="card row"><div class="t"><b>${RIDES[s.id] || "👕"} ${esc(s.name)}</b><small>+${s.charm} к харизме${s.pay ? ` · +${s.pay} 💵 за смену` : ""}</small></div><button class="buy ${on ? "alt" : ""} ${!own && s.aura > ME.aura ? "lock" : ""}" data-why="Не хватает денег" data-s="${s.id}">${on ? "Выбрано" : own ? "Выбрать" : fmt(s.aura) + " 💵"}</button></div>`; }).join("")}`);
+  $("box").onclick = async e => { const b = e.target.closest("[data-s]"); if (!b) return; const r = await call("shop", { id: b.dataset.s }, b); if (r) { toast(r.text); wardrobe(); if (tab === "me") meScreen($("page")); } };
+}
+async function topModal() {
+  openModal(`<h2>Топ по статусу</h2><p class="sub">Загружаю…</p>`);
+  let r; try { r = await api("top"); } catch (err) { return toast(err.message); }
+  openModal(`<h2>Топ по статусу</h2><p class="sub">Твоё место: ${r.rank}</p>${r.top.map((u, i) => `<div class="lb ${u.id === r.me ? "me" : ""}"><span>${i + 1}</span><span>${esc(u.name)} · <small style="color:var(--dim)">${esc(u.tier)}</small></span><span>${u.rating}</span></div>`).join("") || '<p class="sub">Пока пусто.</p>'}`);
+}
+function shopModal() {
+  openModal(`<h2>Магазин</h2><p class="sub">Оплата звёздами Telegram.</p>${CFG.packs.map(p => `<div class="card row"><div class="t"><b>${esc(p.title)}</b><small>${p.aura ? fmt(p.aura) + " 💵" : ""}</small></div><button class="buy ${p.vip && ME.vip ? "lock" : ""}" data-why="VIP уже есть" data-p="${p.id}">⭐ ${p.stars}</button></div>`).join("")}`);
+  $("box").onclick = e => { const b = e.target.closest("[data-p]"); if (b) buy(b.dataset.p, b); };
+}
+async function buy(pack, btn) {
+  if (DEMO) return toast("В демо покупки отключены");
+  const r = await call("invoice", { pack }, btn); if (!r) return;
+  tg.openInvoice(r.link, async status => { if (status !== "paid") return; toast("Оплачено, начисляю…"); for (let i = 0; i < 6; i++) { await new Promise(w => setTimeout(w, 1200)); const before = ME.aura + "|" + ME.energy + "|" + ME.vip; await refreshMe(); if (ME.aura + "|" + ME.energy + "|" + ME.vip !== before) break; } closeModal(); render(); });
+}
+let adCtl = null;
+function loadAds() { if (!CFG.adsBlock || adCtl) return; const s = document.createElement("script"); s.src = "https://sad.adsgram.ai/js/sad.min.js"; s.onload = () => { try { adCtl = window.Adsgram.init({ blockId: CFG.adsBlock }); } catch (e) {} }; document.head.appendChild(s); }
+function refillModal() {
+  openModal(`<h2>Нет энергии</h2><p class="sub">+1 ⚡ каждые 15 минут. Или восполни сразу.</p>${adCtl || DEMO ? `<button class="big" id="ad">СМОТРЕТЬ РЕКЛАМУ</button>` : ""}<button class="ghost" id="st">Полная энергия за ⭐ 15</button>`);
+  if ($("ad")) $("ad").onclick = async e => { e.target.disabled = true; let ok = DEMO; if (!DEMO) { try { const r = await adCtl.show(); ok = r && r.done; } catch (err) { ok = false; } } if (!ok) return toast("Реклама недоступна"); for (let i = 0; i < 6; i++) { try { const r = await api("ad/claim"); setMe(r.me); closeModal(); render(); return toast("Энергия восполнена"); } catch (err) { await new Promise(w => setTimeout(w, 1000)); } } toast("Не удалось подтвердить просмотр"); };
+  $("st").onclick = e => buy("energy", e.target);
+}
+async function refreshMe() { const r = await api("me"); setMe(r.me); CFG = r.config; }
+
+/* ---------- Фото ---------- */
+function portrait() {
+  const c = document.createElement("canvas"); c.width = c.height = 720; c.style.width = c.style.height = "720px";
+  const x = c.getContext("2d"), col = tierColor(ME.rating);
+  const g = x.createRadialGradient(360, 300, 40, 360, 360, 520); g.addColorStop(0, "#4a2f86"); g.addColorStop(.55, "#1c1636"); g.addColorStop(1, "#0c0b16"); x.fillStyle = g; x.fillRect(0, 0, 720, 720);
+  x.globalAlpha = .5; x.strokeStyle = col; x.lineWidth = 3; for (let i = 0; i < 12; i++) { x.beginPath(); x.moveTo(360, 300); x.lineTo(360 + Math.cos(i * .52) * 600, 300 + Math.sin(i * .52) * 600); x.stroke(); } x.globalAlpha = 1;
+  const main = ctx; ctx = x; LOOKS.__me = heroLook(); drawPerson("__me", 360, 1120, 4.3, 1, mixPose(POSES.stand, {}, 0), { seed: 3 }); ctx = main;
+  x.fillStyle = "#0c0b16dd"; x.beginPath(); x.roundRect(200, 610, 320, 74, 37); x.fill(); x.strokeStyle = col; x.lineWidth = 5; x.stroke();
+  x.fillStyle = col; x.font = "900 40px Impact, system-ui, sans-serif"; x.textAlign = "center"; x.fillText(ME.tier.toUpperCase() + " · " + ME.rating, 360, 662);
+  return c.toDataURL("image/png");
+}
+async function takePhoto(e) {
+  const png = portrait();
+  openModal(`<h2>Фото готово 📸</h2><img src="${png}" style="width:100%;border-radius:50%;display:block;margin-bottom:12px"><button class="big" id="send">ОТПРАВИТЬ В ЧАТ С БОТОМ</button><p class="sub" style="text-align:center;margin-top:8px">Открой фото в чате, нажми «⋯» → «Сохранить» и поставь на аватарку.</p>`);
+  $("send").onclick = async ev => { if (DEMO) return toast("В демо отправка отключена"); const r = await call("photo", { png }, ev.target); if (r) { toast("Фото в чате с ботом!"); closeModal(); } };
+}
+
+/* ---------- Цикл ---------- */
+let last = performance.now();
+function frame(t) { sceneT += (t - last) / 1000; last = t; requestAnimationFrame(frame); }
+requestAnimationFrame(frame);
+setInterval(() => { const cv = $("cv"); if (cv && ME && ME.char && !NEW && tab === "me") drawHero(cv, heroLook(), "stand", { glow: tierColor(ME.rating) + "55" }); else if (cv && NEW) drawHero(cv, lookOf(NEW, {}), "stand", { glow: "#b26bff55" }); }, 60);
+(async function boot() {
+  try { await refreshMe(); loadAds(); render(); }
+  catch (err) { $("page").innerHTML = `<h2>Не получилось загрузиться</h2><p class="sub">${esc(err.message)}</p><button class="big" onclick="location.reload()">ЕЩЁ РАЗ</button>`; }
+})();
+function DEMO_API() { throw new Error("Откройте игру через Telegram"); }
+/*DEMO*/
+</script>
+</body>
+</html>
