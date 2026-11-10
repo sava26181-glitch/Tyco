@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from starlette.applications import Starlette
 from starlette.concurrency import run_in_threadpool
 from starlette.responses import FileResponse, JSONResponse, PlainTextResponse
+from starlette.middleware.gzip import GZipMiddleware
 from starlette.routing import Route
 
 from . import db, game, telegram
@@ -104,6 +105,8 @@ def change(user, fn):
                          "WHERE id=? AND ver=? AND aura+?>=0",
                          (json.dumps(st, ensure_ascii=False), delta, score, row["id"], row["ver"], delta)).rowcount
             if done:
+                if isinstance(result, dict) and "me" in result:
+                    result["me"] = view({**row, "aura": row["aura"] + delta}, st)
                 return result
     raise GameError("Попробуйте ещё раз")
 
@@ -130,10 +133,13 @@ def view(row, st):
         mine = st["biz"].get(bid)
         item = {"id": bid, "name": b["name"], "cost": b["cost"], "lvl": 0}
         if mine:
-            hours = min(game.BIZ_CAP_HOURS, (now() - mine["t"]) / 3600)
-            rate = game.biz_income(bid, mine["lvl"]) * (2 if row["vip"] else 1)
-            item.update(lvl=mine["lvl"], rate=rate, ready=int(rate * hours),
-                        up=game.biz_upgrade_cost(bid, mine["lvl"]) if mine["lvl"] < game.BIZ_MAX else None)
+            inc, cap = game.biz_ups(bid, mine.get("ups", []))
+            hours = min(cap, (now() - mine["t"]) / 3600)
+            rate = int(game.biz_income(bid, mine["lvl"]) * (1 + inc) * (2 if row["vip"] else 1))
+            item.update(lvl=mine["lvl"], rate=rate, ready=int(rate * hours), cap=cap, max=game.BIZ_MAX,
+                        up=game.biz_upgrade_cost(bid, mine["lvl"]) if mine["lvl"] < game.BIZ_MAX else None,
+                        items=[{"id": u[0], "name": u[1], "cost": int(b["cost"] * u[2]), "kind": u[3], "value": u[4],
+                                "own": u[0] in mine.get("ups", [])} for u in game.BIZ_UPS[bid]])
         else:
             item["rate"] = game.BIZ[bid]["income"] * (2 if row["vip"] else 1)
         biz.append(item)
@@ -250,7 +256,6 @@ def act(user, body):
 
 
 def with_me(user, result):
-    result["me"] = me(user, {})["me"]
     return result
 
 
@@ -285,7 +290,7 @@ def choose(user, body):
             changes = apply_fx(st, c[5] if len(c) > 5 else {})
             text = c[4]
         st["event"] = None
-        return {"text": text, "ok": ok, "label": label, "changes": changes, "aura": delta}, delta
+        return {"text": text, "ok": ok, "label": label, "changes": changes, "aura": delta, "me": None}, delta
     return with_me(user, change(user, fn))
 
 
@@ -300,11 +305,11 @@ def shop_buy(user, body):
         slot = "ride" if item["kind"] == "ride" else "wear"
         if item_id in st["clothes"]:
             st[slot] = item_id
-            return {"text": "Выбрано"}, 0
+            return {"text": "Выбрано", "me": None}, 0
         st["clothes"].append(item_id)
         st[slot] = item_id
         changes = apply_fx(st, {"charm": item["charm"]})
-        return {"text": f"Куплено: {item['name']}", "changes": changes}, -item["aura"]
+        return {"text": f"Куплено: {item['name']}", "changes": changes, "me": None}, -item["aura"]
     return with_me(user, change(user, fn))
 
 
@@ -347,7 +352,7 @@ def swipe(user, body):
                 if len(st["matches"]) > 20:
                     oldest = next(iter(st["matches"]))
                     st["matches"].pop(oldest)
-        return {"match": match, "card": card}, 0
+        return {"match": match, "card": card, "me": None}, 0
     return with_me(user, change(user, fn))
 
 
@@ -373,18 +378,18 @@ def chat_reply(user, body):
         m["aff"] += gain
         m["log"].append(["me", text])
         m["step"] += 1
-        reacts = {3: ["Ахах, ты мне нравишься 😄", "Вот это ответ 🔥", "Мне это откликается"],
-                  1: ["Хм, ладно 🙂", "Окей)", "Неплохо"], -1: ["Ммм… странно", "Ты всегда так напираешь?", "😐"]}
+        reacts = {3: ["Ахах, ты мне нравишься", "Вот это ответ", "Мне это откликается"],
+                  1: ["Хм, ладно", "Окей)", "Неплохо"], -1: ["Ммм… странно", "Ты всегда так напираешь?", "Понятно"]}
         m["log"].append(["them", random.choice(reacts[gain])])
         if m["step"] < len(game.CHAT):
             m["log"].append(["them", game.CHAT[m["step"]][0]])
         elif m["aff"] >= 6:
             m["status"] = "date"
-            m["log"].append(["them", "Слушай, может встретимся? 😊"])
+            m["log"].append(["them", "Слушай, может встретимся?"])
         else:
             m["status"] = "cold"
             m["log"].append(["them", "Мне пора, было приятно поболтать!"])
-        return {"gain": gain}, 0
+        return {"gain": gain, "me": None}, 0
     return with_me(user, change(user, fn))
 
 
@@ -401,13 +406,13 @@ def date_go(user, body):
         p = game.clamp(.35 + m["aff"] / 30 + spot["bonus"] / 100 + (game.rating(st["st"]) - m["rate"]) / 150, .1, .95)
         ok = random.random() < p
         m["status"] = "couple" if ok else "friend"
-        m["log"].append(["them", "Это был лучший вечер ❤️" if ok else "Ты классный человек, но давай останемся друзьями"])
+        m["log"].append(["them", "Это был лучший вечер" if ok else "Ты классный человек, но давай останемся друзьями"])
         changes = apply_fx(st, {"charm": 4 if ok else -2})
         if ok:
             for other in st["matches"].values():
                 if other is not m and other["status"] == "couple":
                     other["status"] = "friend"
-        return {"ok": ok, "changes": changes, "name": m["name"]}, -spot["aura"]
+        return {"ok": ok, "changes": changes, "name": m["name"], "me": None}, -spot["aura"]
     return with_me(user, change(user, fn))
 
 
@@ -423,14 +428,15 @@ def biz_buy(user, body):
         if bid in st["biz"]:
             raise GameError("Уже куплено")
         st["biz"][bid] = {"lvl": 1, "t": now()}
-        return {"text": f"Теперь у тебя есть: {game.BIZ[bid]['name']}"}, -game.BIZ[bid]["cost"]
+        return {"text": f"Теперь у тебя есть: {game.BIZ[bid]['name']}", "me": None}, -game.BIZ[bid]["cost"]
     return with_me(user, change(user, fn))
 
 
 def collect_one(row, st, bid):
     b = st["biz"][bid]
-    hours = min(game.BIZ_CAP_HOURS, (now() - b["t"]) / 3600)
-    got = int(game.biz_income(bid, b["lvl"]) * (2 if row["vip"] else 1) * hours)
+    inc, cap = game.biz_ups(bid, b.get("ups", []))
+    hours = min(cap, (now() - b["t"]) / 3600)
+    got = int(game.biz_income(bid, b["lvl"]) * (1 + inc) * (2 if row["vip"] else 1) * hours)
     b["t"] = now()
     return got
 
@@ -440,7 +446,7 @@ def biz_collect(user, _body):
         total = sum(collect_one(row, st, bid) for bid in list(st["biz"]))
         if total <= 0:
             raise GameError("Пока нечего собирать")
-        return {"text": f"Собрано: +{total} ауры", "aura": total}, total
+        return {"text": f"Собрано: +{total}", "aura": total, "me": None}, total
     return with_me(user, change(user, fn))
 
 
@@ -456,8 +462,27 @@ def biz_upgrade(user, body):
         got = collect_one(row, st, bid)
         cost = game.biz_upgrade_cost(bid, b["lvl"])
         b["lvl"] += 1
-        return {"text": f"{game.BIZ[bid]['name']}: уровень {b['lvl']}"}, got - cost
+        return {"text": f"{game.BIZ[bid]['name']}: уровень {b['lvl']}", "me": None}, got - cost
     return with_me(user, change(user, fn))
+
+
+def biz_item(user, body):
+    bid, iid = str(body.get("id", "")), str(body.get("item", ""))
+    up = next((u for u in game.BIZ_UPS.get(bid, []) if u[0] == iid), None)
+    if not up:
+        raise GameError("Нет такого улучшения")
+
+    def fn(st, row):
+        b = st["biz"].get(bid)
+        if not b:
+            raise GameError("Сначала купите бизнес")
+        b.setdefault("ups", [])
+        if iid in b["ups"]:
+            raise GameError("Уже куплено")
+        got = collect_one(row, st, bid)
+        b["ups"].append(iid)
+        return {"text": up[1] + ": готово", "me": None}, got - int(game.BIZ[bid]["cost"] * up[2])
+    return change(user, fn)
 
 
 # ---------- NFT-подарки и маркет ----------
@@ -621,7 +646,7 @@ def photo(user, body):
     raw = base64.b64decode(data.split(",", 1)[1], validate=True)
     if len(raw) > 900_000 or not raw.startswith(b"\x89PNG"):
         raise GameError("Картинка слишком большая")
-    telegram.send_photo(user["id"], raw, "Фото твоего персонажа. Открой его и поставь на аватарку 😎")
+    telegram.send_photo(user["id"], raw, "Фото твоего персонажа. Открой его и поставь на аватарку.")
     return {"ok": True}
 
 
@@ -635,7 +660,7 @@ def ad_claim(user, _body):
 
     def refill(st, row):
         st["energy"] = game.ENERGY_MAX
-        return {"text": "Энергия восполнена"}, 0
+        return {"text": "Энергия восполнена", "me": None}, 0
     return with_me(user, change(user, refill))
 
 
@@ -737,9 +762,9 @@ def handle_update(update):
     elif (text := msg.get("text", "")).startswith("/"):
         cmd, chat = text.split()[0].split("@")[0].lower(), msg["chat"]["id"]
         if cmd == "/start":
-            reply = {"chat_id": chat, "text": "Начни курьером и стань магнатом: работай, учись, знакомься, открывай бизнесы и собирай редкие подарки 💼"}
+            reply = {"chat_id": chat, "text": "Начни курьером и стань магнатом: работай, учись, знакомься, открывай бизнесы и собирай редкие подарки."}
             if PUBLIC_URL:
-                reply["reply_markup"] = {"inline_keyboard": [[{"text": "✨ Играть", "web_app": {"url": PUBLIC_URL + "/"}}]]}
+                reply["reply_markup"] = {"inline_keyboard": [[{"text": "Играть", "web_app": {"url": PUBLIC_URL + "/"}}]]}
             telegram.call("sendMessage", **reply)
         elif cmd == "/paysupport":
             telegram.call("sendMessage", chat_id=chat, text=f"Вопрос по оплате? Напишите {SUPPORT_CONTACT}.")
@@ -788,6 +813,10 @@ async def index(_request):
     return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
 
 
+async def gifts_js(_request):
+    return FileResponse(STATIC / "gifts.js", media_type="text/javascript", headers={"Cache-Control": "public, max-age=3600"})
+
+
 async def health(_request):
     return PlainTextResponse("ok")
 
@@ -814,11 +843,12 @@ async def lifespan(_app):
 
 
 ROUTES = {"me": me, "create": create, "act": act, "choose": choose, "shop": shop_buy, "deck": deck, "swipe": swipe,
-          "chat": chat_reply, "date": date_go, "biz/buy": biz_buy, "biz/collect": biz_collect, "biz/up": biz_upgrade,
+          "chat": chat_reply, "date": date_go, "biz/buy": biz_buy, "biz/collect": biz_collect, "biz/up": biz_upgrade, "biz/item": biz_item,
           "gifts": gifts_store, "gift/buy": gift_buy, "gift/up": gift_upgrade, "gift/sell": gift_sell,
           "gift/show": gift_show, "market": market, "market/buy": market_buy, "profile": profile, "top": top,
           "photo": photo, "ad/claim": ad_claim, "invoice": invoice}
 app = Starlette(lifespan=lifespan, routes=[
-    Route("/", index), Route("/health", health),
+    Route("/", index), Route("/health", health), Route("/gifts.js", gifts_js),
     Route("/tg/webhook", webhook, methods=["POST"]), Route("/adsgram/reward", adsgram_reward),
 ] + [Route(f"/api/{k}", api(v), methods=["POST"]) for k, v in ROUTES.items()])
+app.add_middleware(GZipMiddleware, minimum_size=800)
